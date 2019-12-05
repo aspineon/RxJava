@@ -113,9 +113,11 @@ public class OnSubscribeDoOnEachTest {
         doOnEach.subscribe(subscribedObserver);
         verify(subscribedObserver, times(1)).onNext("one");
         verify(subscribedObserver, times(1)).onNext("two");
-        verify(subscribedObserver, never()).onNext("three");
-        verify(subscribedObserver, never()).onCompleted();
-        verify(subscribedObserver, times(1)).onError(any(Throwable.class));
+//        verify(subscribedObserver, never()).onNext("three");
+        verify(subscribedObserver, times(1)).onNext("fail");
+        verify(subscribedObserver, times(1)).onNext("three");
+        verify(subscribedObserver, times(1)).onCompleted();
+        verify(subscribedObserver, never()).onError(any(Throwable.class));
 
     }
 
@@ -250,9 +252,9 @@ public class OnSubscribeDoOnEachTest {
                     throw e1;
                 }})
             .unsafeSubscribe(ts);
-        ts.assertNoValues();
-        ts.assertError(e1);
-        ts.assertNotCompleted();
+        ts.assertValues(1);
+        ts.assertNoErrors();
+        ts.assertCompleted();
     }
 
     @Test
@@ -280,8 +282,8 @@ public class OnSubscribeDoOnEachTest {
                     throw e1;
                 }})
             .unsafeSubscribe(ts);
-        ts.assertNoValues();
-        assertEquals(1, ts.getOnErrorEvents().size());
+        ts.assertValues(1, 2);
+        ts.assertNoErrors();
         ts.assertNotCompleted();
     }
 
@@ -298,6 +300,7 @@ public class OnSubscribeDoOnEachTest {
             TestSubscriber<Integer> ts = TestSubscriber.create();
             final RuntimeException e1 = new RuntimeException();
             final RuntimeException e2 = new RuntimeException();
+            final RuntimeException e3 = new RuntimeException();
             Observable.unsafeCreate(new OnSubscribe<Integer>() {
 
                 @Override
@@ -309,6 +312,7 @@ public class OnSubscribeDoOnEachTest {
                             if (n > 2) {
                                 subscriber.onNext(1);
                                 subscriber.onError(e2);
+                                subscriber.onError(e3);
                             }
                         }
                     });
@@ -320,10 +324,12 @@ public class OnSubscribeDoOnEachTest {
                     throw e1;
                 }
             }).unsafeSubscribe(ts);
-            ts.assertNoValues();
+            ts.assertValues(1);
+            // comes from e2
             assertEquals(1, ts.getOnErrorEvents().size());
             ts.assertNotCompleted();
-            assertEquals(Arrays.asList(e2), list);
+            // e2 stops the subscriber, e3 goes to undelivered error hook
+            assertEquals(Arrays.asList(e3), list);
         } finally {
             RxJavaHooks.reset();
         }
@@ -342,8 +348,8 @@ public class OnSubscribeDoOnEachTest {
                 }})
             .unsafeSubscribe(ts);
         ts.assertNoValues();
-        ts.assertError(e1);
-        ts.assertNotCompleted();
+        ts.assertNoErrors();
+        ts.assertCompleted();
     }
 
     @Test

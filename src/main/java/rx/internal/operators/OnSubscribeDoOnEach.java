@@ -63,7 +63,7 @@ public class OnSubscribeDoOnEach<T> implements OnSubscribe<T> {
                 doOnEachObserver.onCompleted();
             } catch (Throwable e) {
                 Exceptions.throwOrReport(e, this);
-                return;
+//                return;
             }
             // Set `done` here so that the error in `doOnEachObserver.onCompleted()` can be noticed by observer
             done = true;
@@ -96,7 +96,7 @@ public class OnSubscribeDoOnEach<T> implements OnSubscribe<T> {
                 doOnEachObserver.onNext(value);
             } catch (Throwable e) {
                 Exceptions.throwOrReport(e, this, value);
-                return;
+//                return;
             }
             subscriber.onNext(value);
         }

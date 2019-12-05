@@ -15,22 +15,37 @@
  */
 package rx.internal.operators;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import org.junit.Test;
-import org.mockito.Mockito;
-
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.observers.BrokenTestSubscriber;
 import rx.observers.SafeSubscriber;
 import rx.observers.TestSubscriber;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+
 public class SafeSubscriberTest {
+
+    @Test
+    public void testOnNextDoesNotTriggerOnErrorAndStaysSubscribed() {
+        TestObservable t = new TestObservable();
+        Observable<String> st = Observable.unsafeCreate(t);
+
+        @SuppressWarnings("unchecked")
+        Observer<String> w = mock(Observer.class);
+        @SuppressWarnings("unused")
+        Subscription ws = st.subscribe(new SafeSubscriber<String>(new BrokenTestSubscriber<String>(w)));
+
+        t.sendOnNext("one");
+        t.sendOnNext("two");
+
+        verify(w, times(1)).onNext("one");
+        verify(w, never()).onError(any(Throwable.class));
+        verify(w, times(1)).onNext("two");
+    }
 
     /**
      * Ensure onNext can not be called after onError
@@ -51,7 +66,7 @@ public class SafeSubscriberTest {
 
         verify(w, times(1)).onNext("one");
         verify(w, times(1)).onError(any(Throwable.class));
-        verify(w, Mockito.never()).onNext("two");
+        verify(w, never()).onNext("two");
     }
 
     /**
@@ -73,7 +88,7 @@ public class SafeSubscriberTest {
 
         verify(w, times(1)).onNext("one");
         verify(w, times(1)).onError(any(Throwable.class));
-        verify(w, Mockito.never()).onCompleted();
+        verify(w, never()).onCompleted();
     }
 
     /**
@@ -94,9 +109,9 @@ public class SafeSubscriberTest {
         t.sendOnNext("two");
 
         verify(w, times(1)).onNext("one");
-        verify(w, Mockito.never()).onNext("two");
+        verify(w, never()).onNext("two");
         verify(w, times(1)).onCompleted();
-        verify(w, Mockito.never()).onError(any(Throwable.class));
+        verify(w, never()).onError(any(Throwable.class));
     }
 
     /**
@@ -118,7 +133,7 @@ public class SafeSubscriberTest {
 
         verify(w, times(1)).onNext("one");
         verify(w, times(1)).onCompleted();
-        verify(w, Mockito.never()).onError(any(Throwable.class));
+        verify(w, never()).onError(any(Throwable.class));
     }
 
     /**
@@ -135,6 +150,10 @@ public class SafeSubscriberTest {
 
         /* used to simulate subscription */
         public void sendOnNext(String value) {
+            observer.onNext(value);
+        }
+
+        public void sendOnNextError(String value) {
             observer.onNext(value);
         }
 

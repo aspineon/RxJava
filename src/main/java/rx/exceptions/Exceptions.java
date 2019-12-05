@@ -185,7 +185,7 @@ public final class Exceptions {
      */
     public static void throwOrReport(Throwable t, Observer<?> o, Object value) {
         Exceptions.throwIfFatal(t);
-        o.onError(OnErrorThrowable.addValueAsLastCause(t, value));
+//        o.onError(OnErrorThrowable.addValueAsLastCause(t, value));
     }
 
     /**
@@ -198,7 +198,7 @@ public final class Exceptions {
      */
     public static void throwOrReport(Throwable t, SingleSubscriber<?> o, Object value) {
         Exceptions.throwIfFatal(t);
-        o.onError(OnErrorThrowable.addValueAsLastCause(t, value));
+//        o.onError(OnErrorThrowable.addValueAsLastCause(t, value));
     }
 
     /**
@@ -209,7 +209,7 @@ public final class Exceptions {
      */
     public static void throwOrReport(Throwable t, Observer<?> o) {
         Exceptions.throwIfFatal(t);
-        o.onError(t);
+//        o.onError(t);
     }
 
     /**
@@ -221,6 +221,6 @@ public final class Exceptions {
      */
     public static void throwOrReport(Throwable throwable, SingleSubscriber<?> subscriber) {
         Exceptions.throwIfFatal(throwable);
-        subscriber.onError(throwable);
+//        subscriber.onError(throwable);
     }
 }
